@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
             $table->foreignId('driver_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('status', ['pending', 'accepted', 'picked_up', 'delivered', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'in_progress', 'delivered'])->default('pending');
             $table->string('pickup_location');
             $table->string('dropoff_location');
+            $table->string('customer_phone');
             $table->decimal('delivery_fee', 8, 2);
             $table->timestamps();
         });
