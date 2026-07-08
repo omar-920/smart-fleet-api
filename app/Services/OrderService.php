@@ -36,8 +36,31 @@ class OrderService
             // ترتيب الطلبات من الأحدث للأقدم
             ->latest()
             // تقسيم النتائج لصفحات (10 طلبات في كل صفحة)
-            ->paginate(10); 
+            ->paginate(10);
     }
 
+    public function acceptOrder($orderId,$driver_id)
+    {
+        $updated = Order::where('id',$orderId)->whereNull('driver_id')->where('status' , 'pending')->update([
+            'driver_id' => $driver_id,
+            'status'   => 'in_progress'
+        ]);
+        if ($updated === 0) {
+            throw new \Exception('عفواً، الطلب غير متاح أو تم استلامه من سائق آخر بالفعل.');
+        }
+        return Order::find($orderId);
+
+    }
+
+    public function deliverOrder($orderId,$driver_id)
+    {
+        $updated = Order::where('id', $orderId)->where('driver_id' , $driver_id)->where('status' , 'in_progress')->update([
+            'status'   => 'delivered'
+        ]);
+        if ($updated === 0) {
+            throw new \Exception('Error please try again');
+        }
+        return Order::find($orderId);
+    }
 
 }

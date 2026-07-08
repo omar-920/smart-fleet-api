@@ -33,4 +33,35 @@ class OrderController extends Controller
             'orders:'=> $orders
             ],200);
     }
+
+    public function acceptOrder($orderId , Request $request )
+    {   try {
+            $driver = $request->user()->driver;
+            $order = $this->orderService->acceptOrder($orderId, $driver->id);
+            return response()->json([
+                'message' => 'مبروك! تم استلام الطلب بنجاح وهو الآن قيد التنفيذ.',
+                'data'    => $order
+            ]);
+        } catch (\Exception $e) {
+        return response()->json([
+        'message' => $e->getMessage()
+        ], 400);
+        }
+    }
+
+    public function deliverOrder($orderId , Request $request )
+    {   try {
+        $driver = $request->user()->driver;
+        $order = $this->orderService->deliverOrder($orderId, $driver->id);
+        return response()->json([
+            'message' => 'تم تسليم الاوردر عاش يا بطل !!!',
+            'data'    => $order
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 400);
+    }
+    }
+
 }

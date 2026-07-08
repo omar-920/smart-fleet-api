@@ -16,5 +16,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/orders', [OrderController::class,'store']);
     Route::get('/orders', [OrderController::class,'index']);
-
+    Route::post('/order/{id}/accept' , [OrderController::class,'acceptOrder']);
+    Route::post('/order/{id}/deliver' , [OrderController::class,'deliverOrder']);
 });
