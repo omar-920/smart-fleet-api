@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\CreateOrderDTO;
+use App\Jobs\NotifyShopOrderDeliverd;
 use App\Models\Order;
 
 
@@ -52,15 +53,24 @@ class OrderService
 
     }
 
-    public function deliverOrder($orderId,$driver_id)
+    public function deliverOrder($orderId,$driver_id, $proofOfDeliveryFile = null)
     {
+
+        $file_path  = null;
+        if ($proofOfDeliveryFile) {
+            $file_path = $proofOfDeliveryFile->store('proofs', 's3');
+        }
+
         $updated = Order::where('id', $orderId)->where('driver_id' , $driver_id)->where('status' , 'in_progress')->update([
-            'status'   => 'delivered'
+            'status'   => 'delivered',
+            'proof_of_delivery' => $file_path,
         ]);
         if ($updated === 0) {
             throw new \Exception('Error please try again');
         }
-        return Order::find($orderId);
+        $order = Order::find($orderId);
+        NotifyShopOrderDeliverd::dispatch($order);
+        return $order;
     }
 
 }

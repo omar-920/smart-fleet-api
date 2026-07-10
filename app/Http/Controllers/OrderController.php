@@ -52,14 +52,20 @@ class OrderController extends Controller
     public function deliverOrder($orderId , Request $request )
     {   try {
         $driver = $request->user()->driver;
-        $order = $this->orderService->deliverOrder($orderId, $driver->id);
+        $request->validate([
+            'proof_of_delivery' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+        $order = $this->orderService->deliverOrder($orderId, $driver->id , $request->file('proof_of_delivery'));
+
         return response()->json([
             'message' => 'تم تسليم الاوردر عاش يا بطل !!!',
             'data'    => $order
         ]);
     } catch (\Exception $e) {
         return response()->json([
-            'message' => $e->getMessage()
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+        'file' => $e->getFile()
         ], 400);
     }
     }
