@@ -8,43 +8,100 @@ use App\Jobs\NotifyShopOrderDeliverd;
 use App\Models\Order;
 use App\Notifications\OrderAssigned;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 
 
 class OrderService
 {
+//    public function createOrder(CreateOrderDTO $dto): Order
+//    {
+//        $order = Order::create([
+//            'shop_id'          => $dto->shop_id,
+//            'pickup_location'  => $dto->pickup_location,
+//            'dropoff_location' => $dto->dropoff_location,
+//            'customer_phone'   => $dto->customer_phone,
+//            'status'           => 'pending',
+//            'delivery_fee'     => 0,
+//        ]);
+//        Cache::tags(["shop_{$order->shop_id}_orders"])->flush();
+//
+//        NotifyDriverNewOrder::dispatch($order);
+//
+//        return $order;
+//    }
+
+
+
+
+    public function __construct(private OsrmService $osrmService)
+    {
+    }
+
     public function createOrder(CreateOrderDTO $dto): Order
     {
+        $deliveryFee = 0;
+
+        $shop = \App\Models\Shop::findOrFail($dto->shop_id);
+        $shopLat = $shop->lat;
+        $shopLng = $shop->lng;
+
+        if (!$shopLat || !$shopLng) {
+            throw new \Exception('يرجى تحديث إحداثيات المتجر الخاص بك أولاً.');
+        }
+
+        try {
+            $dropoffCoords = explode(',', $dto->dropoff_location);
+
+            if (count($dropoffCoords) == 2) {
+                $routeResult = $this->osrmService->getDistanceAndDuration(
+                    $shopLat, $shopLng,
+                    trim($dropoffCoords[0]), trim($dropoffCoords[1])
+                );
+
+                $pricePerKm = 10;
+                $deliveryFee = round($routeResult['distance_km'] * $pricePerKm, 2);
+            } else {
+                throw new \Exception('صيغة إحداثيات التسليم غير صحيحة، يجب أن تكون "lat,lng"');
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('فشل في حساب تكلفة التوصيل: ' . $e->getMessage());
+        }
+
+        $nearbyDriverIds = Redis::georadius('drivers_locations', $shopLng, $shopLat, 5, 'km');
+
+        if (empty($nearbyDriverIds)) {
+            throw new \Exception('عذراً، لا يوجد سائقين متاحين بالقرب منك حالياً.');
+        }
+
+        $pickupLocationString = $shopLat . ',' . $shopLng;
+
         $order = Order::create([
             'shop_id'          => $dto->shop_id,
-            'pickup_location'  => $dto->pickup_location,
+            'pickup_location'  => $pickupLocationString,
             'dropoff_location' => $dto->dropoff_location,
             'customer_phone'   => $dto->customer_phone,
             'status'           => 'pending',
-            'delivery_fee'     => 0,
+            'delivery_fee'     => $deliveryFee,
         ]);
+
         Cache::tags(["shop_{$order->shop_id}_orders"])->flush();
 
-        NotifyDriverNewOrder::dispatch($order);
+        NotifyDriverNewOrder::dispatch($order, $nearbyDriverIds);
 
         return $order;
     }
-
 //    public function getShopOrders(int $shopId, array $filters = [])
 //    {
 //        return Order::where('shop_id', $shopId)
-//            // فلترة بحالة الطلب لو تم إرسالها (مثلاً: pending)
 //            ->when(isset($filters['status']), function ($query) use ($filters) {
 //                $query->where('status', $filters['status']);
 //            })
-//            // فلترة برقم هاتف العميل لو تم إرساله
+
 //            ->when(isset($filters['customer_phone']), function ($query) use ($filters) {
-//                // استخدمنا like للبحث المرن عن أي جزء من الرقم
 //                $query->where('customer_phone', 'like', '%' . $filters['customer_phone'] . '%');
 //            })
-//            // ترتيب الطلبات من الأحدث للأقدم
 //            ->latest()
-//            // تقسيم النتائج لصفحات (10 طلبات في كل صفحة)
 //            ->paginate(10);
 //    }
 
@@ -55,18 +112,14 @@ class OrderService
         $cache_key = "shop_{$shopId}_orders_{$filter_hash}_page_{$page}";
         return Cache::tags(["shop_{$shopId}_orders"])->remember($cache_key , 60 , function () use ($shopId, $filters) {
             return Order::with('driver')->where('shop_id', $shopId)
-                // فلترة بحالة الطلب لو تم إرسالها (مثلاً: pending)
                 ->when(isset($filters['status']), function ($query) use ($filters) {
                     $query->where('status', $filters['status']);
                 })
-                // فلترة برقم هاتف العميل لو تم إرساله
+
                 ->when(isset($filters['customer_phone']), function ($query) use ($filters) {
-                    // استخدمنا like للبحث المرن عن أي جزء من الرقم
                     $query->where('customer_phone', 'like', '%' . $filters['customer_phone'] . '%');
                 })
-                // ترتيب الطلبات من الأحدث للأقدم
                 ->latest()
-                // تقسيم النتائج لصفحات (10 طلبات في كل صفحة)
                 ->paginate(10)
                 ->toArray();
         });
@@ -89,7 +142,6 @@ class OrderService
             $order->driver->notify(new OrderAssigned($order));
         }
 
-        // 4. الضربة القاضية: مسح كاش المتجر عشان يشوف الحالة الجديدة فوراً
         Cache::tags(["shop_{$order->shop_id}_orders"])->flush();
 
         return $order;
@@ -111,8 +163,10 @@ class OrderService
         if ($updated === 0) {
             throw new \Exception('Error please try again');
         }
-        $order = Order::find($orderId);
-        NotifyShopOrderDeliverd::dispatch($order);
+        $order = Order::with('shop')->find($orderId);
+
+        $order->shop->notify(new \App\Notifications\ShopOrderDeliveredNotification($order));
+
         return $order;
     }
 

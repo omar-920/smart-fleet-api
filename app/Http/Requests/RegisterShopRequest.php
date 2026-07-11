@@ -29,6 +29,8 @@ class RegisterShopRequest extends FormRequest
             'store_name' => 'required|string|max:255',
             'address' => 'required|string',
             'phone_number' => 'required|string',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
         ];
     }
 }

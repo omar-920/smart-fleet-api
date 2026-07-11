@@ -30,9 +30,10 @@ class AuthController extends Controller
                 'store_name' => $request->store_name,
                 'address' => $request->address,
                 'phone_number' => $request->phone_number,
+                'lat' => $request->lat,
+                'lng' => $request->lng,
             ]);
             $token = $user->createToken('auth_token')->plainTextToken;
-
 
             return [
                 'user' => $user,
@@ -88,7 +89,7 @@ class AuthController extends Controller
 
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return response()->json([
             'message' => 'تم تسجيل الدخول بنجاح',
             'user' => $user,
@@ -97,14 +98,13 @@ class AuthController extends Controller
 
     }
 
-    // دالة الخروج من جميع الاجهزة 
-    // public function logout()
-    // {
-    //     Auth::user()->tokens()->delete();
-    //     return response()->json([
-    //         'message' => 'تم تسجيل الخروج بنجاح',
-    //     ]);
-    // }
+     public function logoutAll()
+     {
+         Auth::user()->tokens()->delete();
+         return response()->json([
+             'message' => 'تم تسجيل الخروج بنجاح',
+         ]);
+     }
 
     public function logout(Request $request)
     {

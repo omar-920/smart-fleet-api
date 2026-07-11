@@ -23,7 +23,6 @@ class OrderStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pickup_location'  => 'required|string',
             'dropoff_location' => 'required|string',
             'customer_phone'   => 'required|string',
         ];

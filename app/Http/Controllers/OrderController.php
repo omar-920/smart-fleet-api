@@ -37,6 +37,9 @@ class OrderController extends Controller
     public function acceptOrder($orderId , Request $request )
     {   try {
             $driver = $request->user()->driver;
+        if (!$driver || $driver->is_active == 0) {
+            return response()->json(['message' => 'غير مصرح لك بقبول طلبات حالياً.'], 403);
+        }
             $order = $this->orderService->acceptOrder($orderId, $driver->id);
             return response()->json([
                 'message' => 'مبروك! تم استلام الطلب بنجاح وهو الآن قيد التنفيذ.',
@@ -51,6 +54,7 @@ class OrderController extends Controller
 
     public function deliverOrder($orderId , Request $request )
     {   try {
+
         $driver = $request->user()->driver;
         $request->validate([
             'proof_of_delivery' => 'required|image|mimes:jpeg,png,jpg|max:2048',
