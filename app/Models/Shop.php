@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Shop extends Model
 {
+    use Notifiable;
     protected $guarded = [];
     public function orders()
     {
@@ -15,5 +17,5 @@ class Shop extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
 }

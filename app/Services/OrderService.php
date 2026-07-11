@@ -111,8 +111,11 @@ class OrderService
         if ($updated === 0) {
             throw new \Exception('Error please try again');
         }
-        $order = Order::find($orderId);
-        NotifyShopOrderDeliverd::dispatch($order);
+        $order = Order::with('shop')->find($orderId);
+
+        // إرسال الإشعار للمتجر (هيروح للـ Queue تلقائياً)
+        $order->shop->notify(new \App\Notifications\ShopOrderDeliveredNotification($order));
+
         return $order;
     }
 
