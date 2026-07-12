@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Route;
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/user', function (Request $request) {
-            return $request->user();
-        });
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
 
@@ -27,7 +24,6 @@ use Illuminate\Support\Facades\Route;
             Route::post('/location', [\App\Http\Controllers\LiveLocationController::class, 'store']);
             Route::post('/orders/{id}/accept', [OrderController::class, 'acceptOrder']);
             Route::post('/orders/{id}/deliver', [OrderController::class, 'deliverOrder']);
-            // حماية الـ OTP
             Route::post('/send-otp', [\App\Http\Controllers\Api\VerificationController::class, 'sendOTP'])->middleware('throttle:3,1');
             Route::post('/verify-otp', [\App\Http\Controllers\Api\VerificationController::class, 'verifyOTP']);
             Route::post('/toggle-status', [\App\Http\Controllers\DriverController::class, 'toggleStatus']);

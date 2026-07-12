@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
+    /**
+     * @unauthenticated
+     */
     public function registerShop(RegisterShopRequest $request)
     {
         $result = DB::transaction(function () use ($request) {
@@ -46,6 +49,9 @@ class AuthController extends Controller
             'data' => $result,
         ], 201);
     }
+    /**
+     * @unauthenticated
+     */
     public function registerDriver(RegisterDriverRequest $request)
     {
         $result = DB::transaction(function() use ($request) {
@@ -72,6 +78,9 @@ class AuthController extends Controller
             'data'=> $result,
         ], 201);
     }
+    /**
+     * @unauthenticated
+     */
     public function login(LoginRequest $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
