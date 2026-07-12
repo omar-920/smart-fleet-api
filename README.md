@@ -1,58 +1,75 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚚 Smart Fleet API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A robust, high-performance fleet management and delivery tracking backend system built with Laravel. This API handles the complete lifecycle of delivery orders, real-time driver tracking, and dynamic pricing using spatial data and routing engines.
 
-## About Laravel
+## ✨ Key Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+*   **🔒 Secure Authentication & OTP:** Multi-guard authentication for Shops and Drivers using Laravel Sanctum, reinforced with OTP verification.
+*   **📍 Real-Time Spatial Tracking:** Utilizes **Redis Geo-Radius** to instantly track driver locations and efficiently filter available drivers within a 5km radius of the pickup point.
+*   **🗺️ Dynamic Routing & Pricing:** Integrated with **OSRM (Open Source Routing Machine)** to calculate precise distances and generate dynamic order pricing based on real routes.
+*   **📦 Order Lifecycle Management:** Complete state machine for orders (Pending, Accepted, Delivered) with secure proof-of-delivery uploads.
+*   **🐳 Dockerized Environment:** Fully containerized development environment using Laravel Sail (Docker + WSL).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🛠️ Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+*   **Framework:** Laravel 11 (PHP 8.x)
+*   **Database:** MySQL
+*   **In-Memory Store:** Redis (for queue management and spatial data)
+*   **Routing Engine:** OSRM (Open Source Routing Machine)
+*   **Containerization:** Docker & Laravel Sail
+*   **API Documentation:** Knuckles Scribe & Postman
 
-## Learning Laravel
+## 🚀 Getting Started
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+To get this project up and running on your local machine, follow these steps:
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
+Make sure you have [Docker Desktop](https://www.docker.com/products/docker-desktop) and WSL2 (if on Windows) installed.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Installation
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+1. **Clone the repository:**
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+   git clone https://github.com/omar-920/smart-fleet-api.git
+   cd smart-fleet-api
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+2. **Install Composer dependencies:**
+```bash
+   docker run --rm \
+       -u "$(id -u):$(id -g)" \
+       -v "$(pwd):/var/www/html" \
+       -w /var/www/html \
+       laravelsail/php83-composer:latest \
+       composer install --ignore-platform-reqs
+```
 
-## Contributing
+3. **Environment Setup:**
+```bash
+   cp .env.example .env
+```
+   *(Ensure you configure your database and Redis settings in the `.env` file)*
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **Start the Docker containers using Sail:**
+```bash
+   ./vendor/bin/sail up -d
+```
 
-## Code of Conduct
+5. **Generate App Key & Run Migrations:**
+```bash
+   ./vendor/bin/sail artisan key:generate
+   ./vendor/bin/sail artisan migrate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📚 API Documentation
 
-## Security Vulnerabilities
+This project features comprehensive API documentation generated automatically.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. **Scribe Web Docs:** Once the server is running, visit `http://localhost/docs` to view the interactive API documentation.
+2. **Postman Collection:** A fully configured Postman collection (`smart_fleet.postman_collection.json`) is included in the repository root for immediate API testing. Import it directly into Postman.
 
-## License
+## 👨‍💻 Author
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Omar Tarek**
+
+[LinkedIn](https://www.linkedin.com/in/omar-tarek-59a782262/)
